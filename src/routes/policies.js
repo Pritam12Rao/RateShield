@@ -42,7 +42,7 @@ router.get('/', async (req, res) => {
 });
 
 // Get policy by client_id and endpoint
-router.get('/:client_id/:endpoint(*)', async (req, res) => {
+router.get('/:client_id/:endpoint', async (req, res) => {
   const { client_id } = req.params;
   const endpoint = '/' + req.params.endpoint;
 
@@ -58,7 +58,7 @@ router.get('/:client_id/:endpoint(*)', async (req, res) => {
 });
 
 // Delete a policy
-router.delete('/:client_id/:endpoint(*)', async (req, res) => {
+router.delete('/:client_id/:endpoint', async (req, res) => {
   const { client_id } = req.params;
   const endpoint = '/' + req.params.endpoint;
 

@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { slidingWindow } from '../algorithms/slidingWindow.js';
 import { tokenBucket } from '../algorithms/tokenBucket.js';
 import { validateCheckLimit } from '../middleware/validate.js';
+import { incrementMetric } from '../services/metricsService.js';
 
 const router = Router();
 
@@ -33,6 +34,9 @@ router.post('/', validateCheckLimit, async (req, res) => {
       });
     }
 
+    await incrementMetric('total_requests');
+    await incrementMetric(result.allowed ? 'allowed' : 'blocked');
+
     const status = result.allowed ? 200 : 429;
     return res.status(status).json({
       allowed: result.allowed,
@@ -41,6 +45,7 @@ router.post('/', validateCheckLimit, async (req, res) => {
       remaining: result.remaining ?? result.tokens,
       client_id,
       endpoint,
+      hot_key: result.hot_key ?? false,
     });
 
   } catch (err) {

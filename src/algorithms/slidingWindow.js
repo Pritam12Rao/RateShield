@@ -1,4 +1,5 @@
 import { redis } from '../services/redisClient.js';
+import { localIncrement, isHotKey } from '../services/localCounter.js';
 
 const slidingWindowScript = `
 local key = KEYS[1]
@@ -22,6 +23,9 @@ end
 export async function slidingWindow({ clientId, endpoint, limitCount, windowSeconds }) {
   const key = `rl:sw:${clientId}:${endpoint}`;
   const now = Date.now();
+  const hot = isHotKey(key);
+
+  localIncrement(key);
 
   const [allowed, count] = await redis.eval(
     slidingWindowScript,
@@ -35,5 +39,6 @@ export async function slidingWindow({ clientId, endpoint, limitCount, windowSeco
     limit: limitCount,
     remaining: Math.max(0, limitCount - Number(count)),
     algorithm: 'sliding_window',
+    hot_key: hot,
   };
 }

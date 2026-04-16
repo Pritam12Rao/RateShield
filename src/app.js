@@ -4,12 +4,15 @@ import { pingRedis } from './services/redisClient.js';
 import { pingDB } from './services/policyService.js';
 import checkLimitRouter from './routes/checkLimit.js';
 import policiesRouter from './routes/policies.js';
+import metricsRouter from './routes/metrics.js';
+import { startFlusher } from './services/counterFlusher.js';
 
 const app = express();
 app.use(express.json());
-app.use('/policies', policiesRouter);
 
+app.use('/policies', policiesRouter);
 app.use('/check-limit', checkLimitRouter);
+app.use('/metrics', metricsRouter);
 
 app.get('/health', async (req, res) => {
   const redisOk = await pingRedis();
@@ -22,6 +25,7 @@ app.get('/health', async (req, res) => {
   });
 });
 
+startFlusher();
 app.listen(config.PORT, () => {
   console.log(`RateShield running on port ${config.PORT} | node: ${config.NODE_ID}`);
 });
