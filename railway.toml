@@ -1,0 +1,6 @@
+[build]
+builder = "DOCKERFILE"
+
+[deploy]
+startCommand = "npx prisma migrate deploy && node src/app.js"
+restartPolicyType = "ON_FAILURE"
