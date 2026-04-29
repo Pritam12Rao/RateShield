@@ -4,7 +4,6 @@ import { PrismaClient } from '@prisma/client';
 const router = Router();
 const prisma = new PrismaClient();
 
-// Create a policy
 router.post('/', async (req, res) => {
   const { client_id, endpoint, algorithm, limit_count, window_seconds } = req.body;
 
@@ -31,7 +30,6 @@ router.post('/', async (req, res) => {
   }
 });
 
-// Get all policies
 router.get('/', async (req, res) => {
   try {
     const policies = await prisma.ratePolicy.findMany();
@@ -41,7 +39,6 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Get policy by client_id and endpoint
 router.get('/:client_id/:endpoint', async (req, res) => {
   const { client_id } = req.params;
   const endpoint = '/' + req.params.endpoint;
@@ -57,7 +54,6 @@ router.get('/:client_id/:endpoint', async (req, res) => {
   }
 });
 
-// Delete a policy
 router.delete('/:client_id/:endpoint', async (req, res) => {
   const { client_id } = req.params;
   const endpoint = '/' + req.params.endpoint;

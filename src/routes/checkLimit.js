@@ -1,24 +1,30 @@
-import { Router } from 'express';
-import { slidingWindow } from '../algorithms/slidingWindow.js';
-import { tokenBucket } from '../algorithms/tokenBucket.js';
-import { validateCheckLimit } from '../middleware/validate.js';
-import { incrementMetric } from '../services/metricsService.js';
+import { Router } from "express";
+import { slidingWindow } from "../algorithms/slidingWindow.js";
+import { tokenBucket } from "../algorithms/tokenBucket.js";
+import { validateCheckLimit } from "../middleware/validate.js";
+import { incrementMetric } from "../services/metricsService.js";
+import {
+  httpRequestsTotal,
+  httpLatency,
+} from "../services/prometheusMetrics.js";
 
 const router = Router();
 
-router.post('/', validateCheckLimit, async (req, res) => {
+router.post("/", validateCheckLimit, async (req, res) => {
   const {
     client_id,
     endpoint,
     limit,
     window_seconds,
-    algorithm = 'sliding',
+    algorithm = "sliding",
   } = req.body;
+
+  const end = httpLatency.startTimer();
 
   try {
     let result;
 
-    if (algorithm === 'sliding') {
+    if (algorithm === "sliding") {
       result = await slidingWindow({
         clientId: client_id,
         endpoint,
@@ -34,8 +40,10 @@ router.post('/', validateCheckLimit, async (req, res) => {
       });
     }
 
-    await incrementMetric('total_requests');
-    await incrementMetric(result.allowed ? 'allowed' : 'blocked');
+    await incrementMetric("total_requests");
+    await incrementMetric(result.allowed ? "allowed" : "blocked");
+    httpRequestsTotal.inc({ status: result.allowed ? "allowed" : "blocked" });
+    end();
 
     const status = result.allowed ? 200 : 429;
     return res.status(status).json({
@@ -47,10 +55,10 @@ router.post('/', validateCheckLimit, async (req, res) => {
       endpoint,
       hot_key: result.hot_key ?? false,
     });
-
   } catch (err) {
-    console.error('check-limit error:', err);
-    return res.status(500).json({ error: 'Internal server error' });
+    end();
+    console.error("check-limit error:", err);
+    return res.status(500).json({ error: "Internal server error" });
   }
 });
 

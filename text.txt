@@ -1,1 +1,4 @@
 grep -r "endpoint(\*)" src/
+
+docker run prometheus
+docker run grafana  
